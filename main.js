@@ -1,51 +1,119 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const directoryPickerBtn = document.getElementById('directoryPickerBtn');
-  const fallbackDirectoryInput = document.getElementById('fallbackDirectoryInput');
-  const directoryPickerFallbackText = document.getElementById('directoryPickerFallbackText');
+  const fileInput = document.getElementById('fileInput');
+  const fileUploadForm = document.getElementById('fileUploadForm');
   const output = document.getElementById('output');
 
-  // Check for native Directory Picker support
-  if (!window.showDirectoryPicker) {
-    directoryPickerBtn.classList.add('d-none'); // Hide native picker button
-    fallbackDirectoryInput.classList.remove('d-none'); // Show fallback input
-    directoryPickerFallbackText.classList.remove('d-none');
+  fileUploadForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    if (fileInput.files.length === 0) {
+      output.textContent = 'No file selected. Please upload a file.';
+      return;
+    }
+
+    const file = fileInput.files[0];
+    const text = await file.text();
+    const parsedData = parseFile(text);
+
+    displayTable(parsedData);
+  });
+
+  // Function to parse the file
+  function parseFile(content) {
+    const lines = content.split('\n').filter((line) => line.trim() !== ''); // Remove empty lines
+    let headers = lines[0].split(':').map((header) => header.trim()); // First line as headers
+
+    // Handle duplicate headers
+    const seenHeaders = new Map();
+    headers = headers.map((header) => {
+      const count = seenHeaders.get(header) || 0;
+      seenHeaders.set(header, count + 1);
+      return count > 0 ? `${header}_${count}` : header;
+    });
+
+    return {
+      headers,
+      rows: lines.slice(1).map((line) => {
+        const values = line.split(':').map((value) => value.trim());
+        return headers.reduce((acc, header, i) => {
+          acc[header] = values[i] || '';
+          return acc;
+        }, {});
+      }),
+    };
   }
 
-  // Native Directory Picker
-  directoryPickerBtn.addEventListener('click', async () => {
-    try {
-      const directoryHandle = await window.showDirectoryPicker();
-      const files = [];
+  // Function to display the table
+  function displayTable({ headers, rows }) {
+    if (rows.length === 0) return;
 
-      for await (const [name, handle] of directoryHandle.entries()) {
-        if (handle.kind === 'file') {
-          const file = await handle.getFile();
-          const text = await file.text();
-          files.push({ name, content: text });
-        }
-      }
+    const tableContainer = document.createElement('div');
+    tableContainer.className = 'table-responsive';
 
-      output.innerHTML = `<h5>Files in Directory:</h5><pre>${JSON.stringify(files, null, 2)}</pre>`;
-    } catch (err) {
-      console.error('Error accessing directory:', err);
-      output.textContent = 'Failed to access the directory.';
-    }
-  });
+    const table = document.createElement('table');
+    table.className = 'table table-bordered';
 
-  // Fallback Directory Picker
-  fallbackDirectoryInput.addEventListener('change', async (event) => {
-    const files = Array.from(event.target.files).map((file) => ({
-      name: file.name,
-      content: file.text(),
-    }));
+    // Table Header
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    headers.forEach((header) => {
+      const th = document.createElement('th');
+      th.textContent = header;
+      headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
 
-    const resolvedFiles = await Promise.all(
-      files.map(async (file) => ({
-        name: file.name,
-        content: await file.content,
-      }))
-    );
+    // Table Body
+    const tbody = document.createElement('tbody');
+    rows.forEach((row, rowIndex) => {
+      const tr = document.createElement('tr');
+      headers.forEach((header) => {
+        const td = document.createElement('td');
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = row[header];
+        input.className = 'form-control';
+        input.dataset.row = rowIndex;
+        input.dataset.column = header;
 
-    output.innerHTML = `<h5>Files in Directory (Fallback):</h5><pre>${JSON.stringify(resolvedFiles, null, 2)}</pre>`;
-  });
+        // Update rows dynamically when user changes input
+        input.addEventListener('input', (event) => {
+          const { row, column } = event.target.dataset;
+          rows[row][column] = event.target.value;
+        });
+
+        td.appendChild(input);
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    tableContainer.appendChild(table);
+
+    // Add Download Button
+    const downloadButton = document.createElement('button');
+    downloadButton.className = 'btn btn-primary mb-3';
+    downloadButton.textContent = 'Download Changed CSV';
+    downloadButton.addEventListener('click', () => downloadCSV(headers, rows));
+
+    // Clear previous content and append new table
+    output.innerHTML = '';
+    output.appendChild(downloadButton);
+    output.appendChild(tableContainer);
+  }
+
+  // Function to download the modified CSV
+  function downloadCSV(headers, rows) {
+    const csvContent = [
+      headers.join(':'), // Header row
+      ...rows.map((row) => headers.map((header) => row[header]).join(':')), // Data rows
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'modified_data.csv';
+    link.click();
+  }
 });

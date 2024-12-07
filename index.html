@@ -1,66 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Awesome File Upload</title>
-
-    <!-- Bootstrap CSS (Local or CDN) -->
-    <link rel="stylesheet" href="css/bootstrap.min.css" />
-  </head>
-  <body class="bg-light">
-    <div class="container mt-5">
-      <h1 class="text-primary text-center">Awesome File Upload</h1>
-      <p class="text-secondary text-center">Upload your files below:</p>
-
-      <!-- Single File Upload Form -->
-      <form
-        id="fileUploadForm"
-        class="border p-4 bg-white shadow-sm rounded mb-4"
-      >
-        <h5>Single File Upload</h5>
-        <div class="mb-3">
-          <label for="fileInput" class="form-label">Choose a file:</label>
-          <input type="file" id="fileInput" class="form-control" required />
-        </div>
-        <button type="submit" class="btn btn-primary w-100">
-          Process File
-        </button>
-      </form>
-
-      <!-- Directory Upload Form -->
-      <div
-        id="directoryUploadForm"
-        class="border p-4 bg-white shadow-sm rounded"
-      >
-        <h5>Directory Upload</h5>
-        <p id="directoryPickerFallbackText" class="text-danger d-none">
-          Your browser does not support Directory Picker. Use the input below:
-        </p>
-        <button
-          type="button"
-          id="directoryPickerBtn"
-          class="btn btn-secondary w-100 mb-3"
-        >
-          Select Directory (Native Picker)
-        </button>
-        <input
-          type="file"
-          id="fallbackDirectoryInput"
-          class="form-control d-none"
-          webkitdirectory
-          multiple
-        />
-      </div>
-
-      <!-- Display Results -->
-      <div id="output" class="mt-4"></div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Awesome File Upload</title>
+  
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+</head>
+<body class="bg-light">
+  <div class="container mt-5">
+    <h1 class="text-primary text-center">Awesome File Upload</h1>
+    <p class="text-secondary text-center">Upload your CSV file below or download a model file:</p>
+    
+    <!-- Download Model CSV -->
+    <div class="text-center mb-4">
+      <a href="csv teste.csv" download="model_csv.csv" class="btn btn-success">Download Model CSV</a>
     </div>
+    
+    
+    <!-- File Upload Form -->
+    <form id="fileUploadForm" class="border p-4 bg-white shadow-sm rounded mb-4">
+      <h5>Upload CSV File</h5>
+      <div class="mb-3">
+        <label for="fileInput" class="form-label">Choose a file:</label>
+        <input type="file" id="fileInput" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary w-100">Process File</button>
+    </form>
+  
+    <!-- Output Container -->
+    <div id="output" class="mt-4"></div>
+  </div>
+  
 
-    <!-- Bootstrap JS (Local or CDN) -->
-    <script src="js/bootstrap.bundle.min.js"></script>
-
-    <!-- Link to main.js -->
-    <script src="main.js"></script>
-  </body>
+  <!-- Bootstrap JS -->
+  <script src="js/bootstrap.bundle.min.js"></script>
+  <script src="main.js"></script>
+</body>
 </html>
